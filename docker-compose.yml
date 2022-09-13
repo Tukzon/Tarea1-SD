@@ -1,0 +1,57 @@
+version: '3'
+services:
+  backend:
+    container_name: flask-backend
+    build: ./backend
+    ports:
+      - '50051:50051'
+    depends_on:
+      - postgres
+      - redis1
+      - redis2
+      - redis3
+
+  cliente:
+    container_name: flask-cliente
+    build: ./cliente
+    ports:
+      - '8000:5000'
+    depends_on:
+      - backend
+      - postgres
+      - redis1
+      - redis2
+      - redis3
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres-tarea1
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: tarea1
+
+  redis1:
+    image: redis:latest
+    container_name: redis-tarea1-1
+    ports:
+      - "7000:7000"
+    command: ["redis-server", "--bind", "redis1", "--port", "7000", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000"]
+  
+  redis2:
+    image: redis:latest
+    container_name: redis-tarea1-2
+    ports:
+      - "7001:7001"
+    command: ["redis-server", "--bind", "redis2", "--port", "7001", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000"]
+
+  redis3:
+    image: redis:latest
+    container_name: redis-tarea1-3
+    ports:
+      - "7002:7002"
+    command: ["redis-server", "--bind", "redis3", "--port", "7002", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000" ]
