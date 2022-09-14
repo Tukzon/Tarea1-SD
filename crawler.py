@@ -1,32 +1,90 @@
-import requests
+# Imports para requests y parse de metadata
+from keybert import KeyBERT
 from bs4 import BeautifulSoup
-import numpy as np
-import pandas as pd
+import requests
 
-def get_page(url):
+# Imports para Keywords
+#from gensim.summarization import keywords
+import warnings
+warnings.filterwarnings('ignore')
+
+
+def parse_csv(csv_name, max_lines=None):
+    file = open(csv_name, 'r')
+    Lines = file.readlines()[1:]
+
+    # Para no exceder el límite propuesto
+    count = 0
+
+    for line in Lines:
+        if (count == max_lines):
+            return
+
+        parses = line.split('\t')
+
+        # Evitamos las url en blanco. Es \n porque es el último término antes de un salto de linea.
+        if (parses[4] == '\n'):
+            continue
+
+        url = parses[4]
+        c_url = url[:-1]
+
+        data = get_data_from_url(c_url)
+
+        if data is not None:
+            print(f'[{count}] {data["url"]}\n Title: {repr(data["title"])}\n Description: {repr(data["description"])}\n Keywords: {repr(data["keywords"])}')
+            get_insert_query(data, count)
+            count += 1
+
+    return
+
+
+
+def get_insert_query(data, id):
+    print('getting query...')
+    query = "INSERT INTO `data` (`id`, `url`, `title`, `description`, `keywords`) VALUES ('%s', '%s', '%s', '%s', '%s');" % (
+        id, data['url'], data['title'], data['description'], data['keywords'])
+    with open('insert.sql', 'a') as f:
+        f.write(query + '\n')
+
+
+def get_data_from_url(url):
+    collected_data = {'url': url, 'title': None,
+                      'description': None, 'keywords': []}
     try:
-        page = requests.get(url)
-        return page
-    except:
-        print("Error: Could not get page")
+        r = requests.get(url, timeout=1)
+    except Exception:
+        return None
 
-def get_soup(page):
-    soup = BeautifulSoup(page.content, 'html.parser')
-    return soup
+    if r.status_code == 200:
+        # Se puede usar BeautifulSoap u otra librería que parsee la metadata de los docuementos HTML.
+        soup = BeautifulSoup(r.content, 'html.parser')
+
+        # Obtenemos el título
+        title = soup.find('title')
+        # Obtenemos la metadata
+        meta = soup.find("meta")
+
+        try:
+            collected_data['title'] = title.string.replace('\n', '')
+            if 'name' in meta.attrs.keys() and meta.attrs['name'].strip().lower() in ['description', 'keywords']:
+                collected_data['description'] = meta.attrs['content']
+        except Exception:
+            return None
+
+        # modelo de entrenamiento para Keywords. Comentar si no se quieren los keywords.
+        model = KeyBERT('distilbert-base-nli-mean-tokens')
+        collected_data['keywords'] = model.extract_keywords(
+            str(collected_data['description']), keyphrase_ngram_range=(1, 2), stop_words=None)
+        collected_data['keywords'] = model.extract_keywords(
+            str(collected_data['title']), keyphrase_ngram_range=(1, 2), stop_words=None)
+        if (collected_data['keywords'] == []):
+            return None
+        return collected_data
+
+    return None
 
 
-def data_list():
-    url = 'http://www.cim.mcgill.ca/~dudek/206/Logs/AOL-user-ct-collection/user-ct-test-collection-01.txt'
-    #From the url, get all links and store them in a list
-    page = get_page(url)
-    soup = get_soup(page)
-    data_list = []
-    for line in soup:
-        line = line.split()
-        if line.startswith('http'):
-            data_list.append(line)
-    return data_list
-
-if __name__ == '__main__':
-    url = 'http://www.cim.mcgill.ca/~dudek/206/Logs/AOL-user-ct-collection/user-ct-test-collection-01.txt'
-    print(data_list())
+if __name__ == "__main__":
+    csv_name = './user-ct-test-collection-09.txt'
+    ht = parse_csv(csv_name, max_lines=100)
