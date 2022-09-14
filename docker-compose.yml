@@ -40,7 +40,7 @@ services:
     container_name: redis-tarea1-1
     ports:
       - "7000:7000"
-    command: ["redis-server", "--bind", "redis1", "--port", "7000", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000"]
+    command: ["redis-server", "--bind", "redis1", "--port", "7000"]
   
   redis2:
     image: redis:latest
