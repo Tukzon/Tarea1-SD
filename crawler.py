@@ -44,7 +44,7 @@ def get_insert_query(data, id):
     print('getting query...')
     query = "INSERT INTO `data` (`id`, `url`, `title`, `description`, `keywords`) VALUES ('%s', '%s', '%s', '%s', '%s');" % (
         id, data['url'], data['title'], data['description'], data['keywords'])
-    with open('insert.sql', 'a') as f:
+    with open('./db/init.sql', 'a') as f:
         f.write(query + '\n')
 
 
