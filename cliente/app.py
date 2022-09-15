@@ -10,7 +10,8 @@ import json, time
 
 app = Flask(__name__, template_folder='template')
 
-r = redis.Redis(host="redis1", port=7000, db=0)
+
+r = redis.Redis(host="redis1", port=6379, db=0)
 #r.config_set('maxmemory', 865200*2)
 r.config_set('maxmemory-policy', 'allkeys-lru')
 r.flushall()
