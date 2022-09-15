@@ -39,7 +39,6 @@ def parse_csv(csv_name, max_lines=None):
     return
 
 
-
 def get_insert_query(data, id):
     print('getting query...')
     query = "INSERT INTO `data` (`id`, `url`, `title`, `description`, `keywords`) VALUES ('%s', '%s', '%s', '%s', '%s');" % (
@@ -50,7 +49,7 @@ def get_insert_query(data, id):
 
 def get_data_from_url(url):
     collected_data = {'url': url, 'title': None,
-                      'description': None, 'keywords': []}
+                      'description': None, 'keywords': None}
     try:
         r = requests.get(url, timeout=1)
     except Exception:
@@ -72,7 +71,6 @@ def get_data_from_url(url):
         except Exception:
             return None
 
-        # modelo de entrenamiento para Keywords. Comentar si no se quieren los keywords.
         model = KeyBERT('distilbert-base-nli-mean-tokens')
         collected_data['keywords'] = model.extract_keywords(
             str(collected_data['description']), keyphrase_ngram_range=(1, 2), stop_words=None)
