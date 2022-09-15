@@ -39,9 +39,17 @@ def serve():
     server.start()
     server.wait_for_termination()
 
-
+def insert_from_txt():
+    with open('./db/insert.txt', 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            try:
+                cursor.execute(line)
+            except:
+                pass
 if __name__ == '__main__':
     #sleep(20)
     conn = querys.init_db()
     cursor = conn.cursor()
     serve()
+    insert_from_txt()

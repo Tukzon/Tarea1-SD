@@ -1,13 +1,14 @@
 # Imports para requests y parse de metadata
+from ast import keyword
 from keybert import KeyBERT
 from bs4 import BeautifulSoup
 from unicodedata import name
 import requests
 
 def parse_data(data_name, max_lines=None):
-    with open(data_name, 'r', encoding="utf-8") as file:
+    with open(data_name, 'r') as file:
 
-        lines = file.readlines()[1:]
+        lines = file.readlines()
 
         # Para no exceder el límite propuesto
         count = 0
@@ -17,19 +18,14 @@ def parse_data(data_name, max_lines=None):
                 return
 
             parses = line.split('\t')
-
-            # Evitamos las url en blanco. Es \n porque es el último término antes de un salto de linea.
-            if (parses[4] == '\n'):
-                continue
-
+            id = int(parses[0])
             url = parses[4]
             c_url = url[:-1]
-
             data = get_data_from_url(c_url)
 
             if data is not None:
-                print(f'[{count}] {data["url"]}\n Title: {repr(data["title"])}\n Description: {repr(data["description"])}\n Keywords: {repr(data["keywords"])}')
-                get_insert_query(data, count)
+                print(f'[{id}],{data["url"]}\n Title: {repr(data["title"])}\n Description: {repr(data["description"])}\n Keywords: {repr(data["keywords"])}')
+                get_insert_query(data, id)
                 count += 1
 
     return
@@ -37,14 +33,16 @@ def parse_data(data_name, max_lines=None):
 
 def get_insert_query(data, id):
     print('getting query...')
-    query = 'INSERT INTO data (id, url, title, description, keywords) VALUES ("%s", "%s", "%s", "%s", "%s");' % (
-        id, data['url'], data['title'], data['description'], data['keywords'])
-    with open('./db/init.sql', 'a', encoding="utf-8") as f:
-        f.write(query + '\n')
+    for kw in data['keywords']:
+        query = f'INSERT INTO data VALUES ({id},"{data["url"]}", "{data["title"]}", "{data["description"]}", "{kw}");'
+        print(query)
+        with open('./db/insert.txt', 'a', encoding="utf-8") as f:
+            f.write(query + '\n')
+        id +=1
 
 
 def get_data_from_url(url):
-    collected_data = {'url': url, 'title': None,'description': None, 'keywords': None}
+    collected_data = {'url': url, 'title': None,'description': None, 'keywords': []}
     try:
         r = requests.get(url, timeout=1)
     except Exception:
