@@ -15,17 +15,18 @@ class SearchService(pb2_grpc.SearchServicer):
         response = []
         message = request.message
         result = f'"{message}" '
-        cursor.execute("SELECT * FROM Items;")
+        cursor.execute("SELECT * FROM data;")
         query_res = cursor.fetchall()
         for row in query_res:
             if message in row[1]:
                 item.append(row)
         for i in item:
             result = dict()
-            result['name'] = i[1]
-            result['price']= i[2]
-            result['category'] = i[3]
-            result['count']= i[4]
+            result['id'] = i[1]
+            result['url']= i[2]
+            result['title'] = i[3]
+            result['description']= i[4]
+            result['keywords']= i[5]
             response.append(result)
         
         print(pb2.SearchResults(product=response))
