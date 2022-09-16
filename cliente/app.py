@@ -48,24 +48,25 @@ def index():
 @app.route('/search', methods = ['GET'])
 def search():
     client = SearchClient()
+    print(client)
     search = request.args['search']
     cache = r.get(search)
     if cache == None:
-        item = client.get_url(message=search)
+        data = client.get_url(message=search)
         
-        r.set(search, str(item))
+        r.set(search, str(data))
         
-        return render_template('index.html', datos = item, procedencia = "Datos sacados de PostgreSQL")
+        return render_template('index.html', datos = data, procedencia = "Datos sacados de PostgreSQL")
     
     else:
         print(cache)
-        item = cache.decode("utf-8")
-        print(item)
+        data = cache.decode("utf-8")
+        print(data)
         dicc = dict()
-        dicc['Resultado'] = item
+        dicc['Resultado'] = data
         print(cache)
         print(dicc)
-        return render_template('index.html', datos = item, procedencia = "Datos sacados de Redis")
+        return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis")
         #line = "Datos sacados de Redis" + item
         #print("en redis")
 

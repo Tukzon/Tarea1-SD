@@ -14,4 +14,4 @@ RUN python -m grpc_tools.protoc -I config --python_out=. --grpc_python_out=. con
 
 EXPOSE 3000
 
-CMD ["python", "-u", "app.py"]
+CMD ["python", "app.py"]
