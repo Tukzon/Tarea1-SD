@@ -97,6 +97,6 @@ def get_data_from_url(url):
 
 
 if __name__ == "__main__":
-    data_name = './user-ct-test-collection-09.txt'
+    data_name = './user-ct-test-collection-09_2.txt'
     ht = parse_data(data_name, 50)
     
