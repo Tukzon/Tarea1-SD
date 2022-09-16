@@ -14,6 +14,7 @@ RUN python3 -m grpc_tools.protoc -I ./ --python_out=. --grpc_python_out=. ./prot
 
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
+ENV GRPC_DNS_RESOLVER=native
 
 EXPOSE 8000
 

@@ -14,4 +14,6 @@ RUN python -m grpc_tools.protoc -I config --python_out=. --grpc_python_out=. con
 
 EXPOSE 3000
 
+ENV GRPC_DNS_RESOLVER=native
+
 CMD ["python", "app.py"]
