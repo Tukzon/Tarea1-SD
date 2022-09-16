@@ -23,11 +23,11 @@ class SearchService(pb2_grpc.SearchServicer):
                 print(row)
         for i in data:
             result = dict()
-            result['id'] = i[1]
-            result['url']= i[2]
-            result['title'] = i[3]
-            result['description']= i[4]
-            result['keywords']= i[5]
+            result['id'] = i[0]
+            result['url']= i[1]
+            result['title'] = i[2]
+            result['description']= i[3]
+            result['keywords']= i[4]
             print(result)
             response.append(result)
         
