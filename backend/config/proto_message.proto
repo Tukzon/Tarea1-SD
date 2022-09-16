@@ -19,5 +19,5 @@ message Product{
  string url = 2;
  string title = 3;
  string description = 4;
- repeated string keywords = 5;
+ string keywords = 5;
 }
