@@ -33,11 +33,16 @@ def parse_data(data_name, max_lines=None):
 
 def get_insert_query(data, id):
     print('getting query...')
+    keysw = ""
     for kw in data['keywords']:
-        query = f'INSERT INTO data VALUES ({id},"{data["url"]}", "{data["title"]}", "{data["description"]}", "{kw}");'
-        print(query)
-        with open('./db/insert.txt', 'a', encoding="utf-8") as f:
-            f.write(query + '\n')
+        if kw == data['keywords'][len(data['keywords'])-1]:
+            keysw += '\''+kw+'\''
+        else:
+            keysw += '\''+kw+ "\',"
+    query = f'INSERT INTO data (id,url,title,description,keywords) VALUES ({id},\'{data["url"]}\', \'{data["title"]}\', \'{data["description"]}\', ARRAY[{keysw}]);'
+    print(query)
+    with open('./db/insert.txt', 'a', encoding="utf-8") as f:
+        f.write(query + '\n')
         id +=1
 
 
@@ -69,10 +74,15 @@ def get_data_from_url(url):
             else:
                 title = title['content'] if title else None
                 description = description['content'] if description else None
+                description = description.replace('\n', ' ') if description else None
+                description = description.replace('\r', ' ') if description else None
+                description = description.replace('\t', ' ') if description else None
+                description = description.replace("'", '') if description else None
                 keywords = keywords['content'] if keywords else None
                 keywords = keywords.replace(" ", "") if keywords else None
                 keywords = keywords.replace(".", "") if keywords else None
                 keywords = keywords.split(",") if keywords else None
+                keywords = keywords.replace("'", "") if keywords else None
 
         except Exception:
             return None
@@ -88,5 +98,5 @@ def get_data_from_url(url):
 
 if __name__ == "__main__":
     data_name = './user-ct-test-collection-09.txt'
-    ht = parse_data(data_name, 5)
+    ht = parse_data(data_name, 50)
     
