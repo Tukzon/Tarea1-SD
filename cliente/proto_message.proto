@@ -11,10 +11,10 @@ message Message{
 }
 
 message SearchResults{
-  repeated Product product = 1;
+  repeated Site site = 1;
 }
 
-message Product{
+message Site{
  int32 id = 1;
  string url = 2;
  string title = 3;

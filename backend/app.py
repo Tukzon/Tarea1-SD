@@ -31,8 +31,8 @@ class SearchService(pb2_grpc.SearchServicer):
             print(result)
             response.append(result)
         
-        print(pb2.SearchResults(product=response))
-        return pb2.SearchResults(product=response)
+        print(pb2.SearchResults(site=response))
+        return pb2.SearchResults(site=response)
 
 def serve():
     print("Server started")
