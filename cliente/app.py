@@ -3,18 +3,30 @@ from flask import Flask, request, render_template
 import grpc
 import redis
 import logging
-
+from random import randint
 import proto_message_pb2 as pb2_grpc
 import proto_message_pb2_grpc as pb2
 import json, time
 
 app = Flask(__name__, template_folder='template')
 
+r1 = redis.Redis(host="redis1", port=6379, db=0)
+r1.config_set('maxmemory', 865200*2)
+r1.config_set('maxmemory-policy', 'allkeys-lru')
 
-r = redis.Redis(host="redis1", port=6379, db=0)
-#r.config_set('maxmemory', 865200*2)
-r.config_set('maxmemory-policy', 'allkeys-lru')
-r.flushall()
+r2 = redis.Redis(host="redis2", port=6379, db=0)
+r2.config_set('maxmemory', 865200*2)
+r2.config_set('maxmemory-policy', 'allkeys-lru')
+
+r3 = redis.Redis(host="redis3", port=6379, db=0)
+r3.config_set('maxmemory', 865200*2)
+r3.config_set('maxmemory-policy', 'allkeys-lru')
+
+r1.flushall()
+r2.flushall()
+r3.flushall()
+
+r = [r1,r2,r3]
 
 class SearchClient(object):
     """
@@ -50,29 +62,26 @@ def search():
     client = SearchClient()
     print(client)
     search = request.args['search']
-    cache = r.get(search)
-    if cache == None:
+    cache = list()
+    cache.append(r1.get(search))
+    cache.append(r2.get(search))
+    cache.append(r3.get(search))
+    if cache[0] == None and cache[1] == None and cache[2] == None:
         data = client.get_url(message=search)
-        
-        r.set(search, str(data))
+        rand = randint(0,2)
+        print("Almacenado en redis"+(rand+1))
+        r[rand].set(search, str(data))
         
         return render_template('index.html', datos = data, procedencia = "Datos sacados de PostgreSQL")
     
     else:
-        print(cache)
-        data = cache.decode("utf-8")
-        print(data)
-        dicc = dict()
-        dicc['Resultado'] = data
-        print(cache)
-        print(dicc)
-        return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis")
-        #line = "Datos sacados de Redis" + item
-        #print("en redis")
+        for datos in cache:
+            if datos != None:
+                data = datos.decode("utf-8")
+                dicc = dict()
+                dicc['Resultado'] = data
+                print(dicc)
+                return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis")
 
 if __name__ == '__main__':
-    #time.sleep(25)
     app.run(debug=True)
-    #result = client.get_url(message="Hello Server you there?")
-    #print(result.product[0].name + "*******")
-    #print(f'{result}')

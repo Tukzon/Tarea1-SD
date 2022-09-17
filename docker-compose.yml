@@ -22,7 +22,6 @@ services:
       - redis1
       - redis2
       - redis3
-    restart: always
 
   postgres:
     image: postgres:latest
@@ -42,7 +41,6 @@ services:
     ports:
       - "6379:6379"
     environment:
-      - REDIS_REPLICATION_MODE=master
       - ALLOW_EMPTY_PASSWORD=yes
     restart: always
     
@@ -50,23 +48,17 @@ services:
     image: bitnami/redis:6.0
     container_name: redis-tarea1-2
     ports:
-      - "7001:6379"
+      - "7000:6379"
     environment:
-      - REDIS_REPLICATION_MODE=slave
-      - REDIS_MASTER_HOST=redis1
       - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_MASTER_PORT_NUMBER=6379
     restart: always
     
   redis3:
     image: bitnami/redis:6.0
     container_name: redis-tarea1-3
     ports:
-      - "7002:6379"
+      - "7001:6379"
     environment:
-      - REDIS_REPLICATION_MODE=slave
-      - REDIS_MASTER_HOST=redis1
-      - REDIS_MASTER_PORT_NUMBER=6379
       - ALLOW_EMPTY_PASSWORD=yes
     restart: always
     
