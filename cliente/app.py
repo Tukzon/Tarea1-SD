@@ -59,6 +59,7 @@ def index():
 
 @app.route('/search', methods = ['GET'])
 def search():
+    inicio = time.time()
     client = SearchClient()
     print(client)
     search = request.args['search']
@@ -69,10 +70,11 @@ def search():
     if cache[0] == None and cache[1] == None and cache[2] == None:
         data = client.get_url(message=search)
         rand = randint(0,2)
-        print("Almacenado en redis"+(rand+1))
+        location = "Almacenado en redis"+str(rand+1)
+        print(location)
         r[rand].set(search, str(data))
         
-        return render_template('index.html', datos = data, procedencia = "Datos sacados de PostgreSQL")
+        return render_template('index.html', datos = data, procedencia = "Datos sacados de PostgreSQL en: "+str(int((time.time()-inicio)*1000))+"ms", redis = location)
     
     else:
         for datos in cache:
@@ -81,7 +83,7 @@ def search():
                 dicc = dict()
                 dicc['Resultado'] = data
                 print(dicc)
-                return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis")
+                return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis en: "+str(int((time.time()-inicio)*1000))+"ms")
 
 if __name__ == '__main__':
     app.run(debug=True)
