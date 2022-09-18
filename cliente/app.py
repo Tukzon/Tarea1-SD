@@ -8,18 +8,21 @@ import proto_message_pb2 as pb2_grpc
 import proto_message_pb2_grpc as pb2
 import json, time
 
+global contador_cache
+contador_cache = 0
+
 app = Flask(__name__, template_folder='template')
 
 r1 = redis.Redis(host="redis1", port=6379, db=0)
-r1.config_set('maxmemory', 865200*2)
+r1.config_set('maxmemory', 1048576)
 r1.config_set('maxmemory-policy', 'allkeys-lru')
 
 r2 = redis.Redis(host="redis2", port=6379, db=0)
-r2.config_set('maxmemory', 865200*2)
+r2.config_set('maxmemory', 1048576)
 r2.config_set('maxmemory-policy', 'allkeys-lru')
 
 r3 = redis.Redis(host="redis3", port=6379, db=0)
-r3.config_set('maxmemory', 865200*2)
+r3.config_set('maxmemory', 1048576)
 r3.config_set('maxmemory-policy', 'allkeys-lru')
 
 r1.flushall()
@@ -55,13 +58,14 @@ class SearchClient(object):
 
 @app.route('/')
 def index(): 
-    return render_template('index.html')
+    return render_template('index.html', contador = contador_cache)
 
 @app.route('/search', methods = ['GET'])
 def search():
     inicio = time.time()
     client = SearchClient()
     print(client)
+    global contador_cache
     search = request.args['search']
     cache = list()
     cache.append(r1.get(search))
@@ -74,16 +78,17 @@ def search():
         print(location)
         r[rand].set(search, str(data))
         
-        return render_template('index.html', datos = data, procedencia = "Datos sacados de PostgreSQL en: "+str(int((time.time()-inicio)*1000))+"ms", redis = location)
+        return render_template('index.html', datos = data, procedencia = "Datos sacados de PostgreSQL en: "+str(int((time.time()-inicio)*1000))+"ms", redis = location, contador = contador_cache)
     
     else:
+        contador_cache += 1
         for datos in cache:
             if datos != None:
                 data = datos.decode("utf-8")
                 dicc = dict()
                 dicc['Resultado'] = data
                 print(dicc)
-                return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis en: "+str(int((time.time()-inicio)*1000))+"ms")
+                return render_template('index.html', datos = data, procedencia = "Datos sacados de Redis en: "+str(int((time.time()-inicio)*1000))+"ms", contador= contador_cache)
 
 if __name__ == '__main__':
     app.run(debug=True)
